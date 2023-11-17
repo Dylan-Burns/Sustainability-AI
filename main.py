@@ -8,13 +8,19 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 import seaborn as sns
 
 # Step 1: Load and Audit the Training Data
-data = pd.read_csv('i1_positive.csv')
-# Audit the dataset if required and perform any preprocessing.
+data = pd.read_csv('features.csv')
+
+# One-hot encode categorical variables
+data = pd.get_dummies(data, columns=['Country'])  # Replace 'Country' with the actual categorical column names
+
+# Drop non-numeric columns
+non_numeric_columns = data.select_dtypes(exclude='number').columns
+data = data.drop(non_numeric_columns, axis=1)
 
 # Step 2: Train the Random Forest Model
 # Split the data into features (X) and the target variable (y)
-X = data.drop('Label', axis=1)
-y = data['Label']
+X = data.drop('Class Label', axis=1)
+y = data['Class Label']
 
 # Split the dataset into a training set and a testing set
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
@@ -102,61 +108,75 @@ negative_sample_prediction = best_rf_classifier.predict(negative_sample)
 print("Positive Sample Prediction:", positive_sample_prediction)
 print("Negative Sample Prediction:", negative_sample_prediction)
 
+# Number of rows and columns before operations
+original_rows, original_columns = data.shape
 
-# Calculate ROC curve
-y_prob = best_rf_classifier.predict_proba(X_test)[:, 1]
-fpr, tpr, thresholds = roc_curve(y_test, y_prob)
+# Number of rows and columns after dropping non-numeric columns and one-hot encoding
+new_rows, new_columns = X.shape
 
-# Plot ROC curve
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = {:.2f})'.format(roc_auc_score(y_test, y_prob)))
-plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic (ROC) Curve')
-plt.legend(loc='lower right')
-plt.show()
+# Calculate data loss
+rows_lost = original_rows - new_rows
+columns_lost = original_columns - new_columns
 
-# Calculate precision-recall curve
-precision, recall, thresholds = precision_recall_curve(y_test, y_prob)
+print("Original Data Shape:", (original_rows, original_columns))
+print("New Data Shape:", (new_rows, new_columns))
+print("Data Lost:", f"{rows_lost} rows, {columns_lost} columns")
 
-# Plot precision-recall curve
-plt.figure(figsize=(8, 6))
-plt.plot(recall, precision, color='b', lw=2, label='Precision-Recall curve')
-plt.xlabel('Recall')
-plt.ylabel('Precision')
-plt.title('Precision-Recall Curve')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.legend(loc='best')
-plt.show()
 
-###############################################
-# Feature Importance Heatmap (Top 10)
-###############################################
+# # Calculate ROC curve
+# y_prob = best_rf_classifier.predict_proba(X_test)[:, 1]
+# fpr, tpr, thresholds = roc_curve(y_test, y_prob)
+#
+# # Plot ROC curve
+# plt.figure(figsize=(8, 6))
+# plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = {:.2f})'.format(roc_auc_score(y_test, y_prob)))
+# plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+# plt.xlim([0.0, 1.0])
+# plt.ylim([0.0, 1.05])
+# plt.xlabel('False Positive Rate')
+# plt.ylabel('True Positive Rate')
+# plt.title('Receiver Operating Characteristic (ROC) Curve')
+# plt.legend(loc='lower right')
+# plt.show()
+#
+# # Calculate precision-recall curve
+# precision, recall, thresholds = precision_recall_curve(y_test, y_prob)
+#
+# # Plot precision-recall curve
+# plt.figure(figsize=(8, 6))
+# plt.plot(recall, precision, color='b', lw=2, label='Precision-Recall curve')
+# plt.xlabel('Recall')
+# plt.ylabel('Precision')
+# plt.title('Precision-Recall Curve')
+# plt.xlim([0.0, 1.0])
+# plt.ylim([0.0, 1.05])
+# plt.legend(loc='best')
+# plt.show()
 
-# Plot feature importance (Top 10)
-plt.figure(figsize=(10, 6))
-plt.barh(range(10), feature_importances[top_10_feature_indices])
-plt.yticks(range(10), top_10_features)
-plt.xlabel('Feature Importance')
-plt.ylabel('Features')
-plt.title('Top 10 Feature Importance')
-plt.show()
-
-###############################################
-# Confusion Matrix Visualization
-###############################################
-
-# Plot confusion matrix as a heatmap
-plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.title('Confusion Matrix')
-plt.show()
+# ###############################################
+# # Feature Importance Heatmap (Top 10)
+# ###############################################
+#
+# # Plot feature importance (Top 10)
+# plt.figure(figsize=(10, 6))
+# plt.barh(range(10), feature_importances[top_10_feature_indices])
+# plt.yticks(range(10), top_10_features)
+# plt.xlabel('Feature Importance')
+# plt.ylabel('Features')
+# plt.title('Top 10 Feature Importance')
+# plt.show()
+#
+# ###############################################
+# # Confusion Matrix Visualization
+# ###############################################
+#
+# # Plot confusion matrix as a heatmap
+# plt.figure(figsize=(8, 6))
+# sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues')
+# plt.xlabel('Predicted')
+# plt.ylabel('Actual')
+# plt.title('Confusion Matrix')
+# plt.show()
 
 
 
