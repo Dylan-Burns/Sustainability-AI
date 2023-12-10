@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
+import sns as sns
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix, roc_curve, roc_auc_score
+from sklearn.metrics import classification_report, confusion_matrix, roc_curve, roc_auc_score, precision_recall_curve
 import matplotlib.pyplot as plt
 
 # Step 1: Load and Audit the Training Data
@@ -99,6 +100,67 @@ plt.ylabel('True Positive Rate')
 plt.title('Receiver Operating Characteristic (ROC) Curve')
 plt.legend(loc='lower right')
 plt.show()
+
+
+
+###############################################
+# Precision Recall Curve
+###############################################
+# Convert 'Good' to 0 and 'Bad' to 1
+y_test_binary = y_test.map({'Good': 0, 'Bad': 1})
+precision, recall, _ = precision_recall_curve(y_test_binary, probabilities)
+
+
+plt.figure(figsize=(8, 6))
+plt.plot(recall, precision, marker='.', label='Random Forest')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend()
+plt.grid()
+plt.show()
+
+###############################################
+# Feature Importance Heatmap (Top 10)
+###############################################
+
+import seaborn as sns
+
+# Assuming 'model' is your trained RandomForest model and 'X_train' is your training data
+importances = model.feature_importances_
+feature_names = X_train.columns
+
+# Create a dataframe of feature importances
+df_feature_importance = pd.DataFrame({'feature': feature_names, 'importance': importances})
+df_feature_importance = df_feature_importance.sort_values('importance', ascending=False)
+
+# Plotting
+plt.figure(figsize=(30, 40))
+sns.heatmap(df_feature_importance.set_index('feature').T, cmap='viridis', annot=True)
+plt.title('Feature Importance Heatmap')
+plt.show()
+
+
+###############################################
+# Confusion Matrix Visualization
+###############################################
+
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+
+# Assuming 'y_test' contains true labels and 'predictions' contain model predictions
+cm = confusion_matrix(y_test, predictions)
+
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='g', cmap='Blues')
+plt.title('Confusion Matrix')
+plt.xlabel('Predicted Labels')
+plt.ylabel('True Labels')
+plt.show()
+
+
+
+
 
 
 ################################################
